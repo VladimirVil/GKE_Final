@@ -22,7 +22,7 @@ public class GKEMessage_Impl implements GKEMessage{
         this.sentDate = sentDate;
     }
 
-    GKEMessage_Impl(CharSequence asapMessage) throws ASAPException {
+    public GKEMessage_Impl(CharSequence asapMessage) throws ASAPException {
         this.deserializeMessage(asapMessage); // throws exception if malformed
 
         // not malformed - set rest of it

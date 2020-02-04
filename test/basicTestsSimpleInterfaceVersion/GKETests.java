@@ -5,6 +5,7 @@ import net.sharksystem.asap.ASAPException;
 import net.sharksystem.asap.apps.*;
 import net.sharksystem.asap.util.ASAPEngineThread;
 import net.sharksystem.cmdline.TCPChannel;
+import nodesV2.GKEMessage;
 import nodesV2.GKEMessage_Impl;
 
 import org.junit.Assert;
@@ -25,15 +26,13 @@ public class GKETests {
     public static final String CLAIRE = "Claire";
 
     private static final CharSequence APP_FORMAT = "TEST_FORMAT";
-    private static final byte[] TESTMESSAGE1 = "Hallo  Bob Alice here WHatever Bye Bye ".getBytes();
-    private static final byte[] TESTMESSAGE2 = "Hallo  Claire Bob here Bye ".getBytes();
-    private static final byte[] TESTMESSAGE3 = "Hallo   Alice Claire here Bye Bye ".getBytes();
-
-
-
 
     @Test
     public void usageTest() throws IOException, ASAPException, InterruptedException {
+        final byte[] TESTMESSAGE1 = "Hallo  Bob Alice here WHatever Bye Bye ".getBytes();
+        final byte[] TESTMESSAGE2 = "Hallo  Claire Bob here Bye ".getBytes();
+        final byte[] TESTMESSAGE3 = "Hallo   Alice Claire here Bye Bye ".getBytes();
+        
         final String TESTS_ROOT_FOLDER = "tests/";
         final String ALICE_ROOT_FOLDER = TESTS_ROOT_FOLDER + "Alice";
         final String BOB_ROOT_FOLDER = TESTS_ROOT_FOLDER + "Bob";
@@ -144,6 +143,10 @@ public class GKETests {
     
     @Test
     public void testMessageImplFor2Users() throws IOException, ASAPException, InterruptedException {
+    	final String testMessageString1 = "Hallo Bob, Alice here äöüß";
+    	final String testMessageString2 = "Hallo CLaire, Bob here äöüß";
+    	final String testMessageString3 = "Hallo Alice, Claire here äöüß";
+    	
         final String TESTS_ROOT_FOLDER = "tests_message_impl_for_2_users/";
         final String ALICE_ROOT_FOLDER = TESTS_ROOT_FOLDER + "Alice";
         final String BOB_ROOT_FOLDER = TESTS_ROOT_FOLDER + "Bob";
@@ -152,6 +155,17 @@ public class GKETests {
         final int PORT7780 = 7780;
         final int PORT7781 = 7781;
         final int PORT7782 = 7782;
+        
+        
+        final GKEMessage testMessage1 = new GKEMessage_Impl(testMessageString1);
+        final GKEMessage testMessage2 = new GKEMessage_Impl(testMessageString2);
+        final GKEMessage testMessage3 = new GKEMessage_Impl(testMessageString3);
+        
+        
+        final byte[] TESTMESSAGE_PAYLOAD1 = testMessage1.getContent();
+        final byte[] TESTMESSAGE_PAYLOAD2 = testMessage2.getContent();
+        final byte[] TESTMESSAGE_PAYLOAD3 = testMessage3.getContent();
+       
         
         ASAPEngineFS.removeFolder(TESTS_ROOT_FOLDER);
         Collection<CharSequence> formats = new HashSet<>();
@@ -163,7 +177,7 @@ public class GKETests {
         Collection<CharSequence> recipients = new HashSet<>();
         recipients.add(BOB);
 
-        asapJavaApplicationAlice.sendASAPMessage(APP_FORMAT, "yourSchema://yourURI", recipients, TESTMESSAGE1);
+        asapJavaApplicationAlice.sendASAPMessage(APP_FORMAT, "yourSchema://yourURI", recipients, TESTMESSAGE_PAYLOAD1);
         asapJavaApplicationAlice.setASAPMessageReceivedListener(APP_FORMAT, new ListenerExample());
 
         // create bob engine
@@ -212,13 +226,15 @@ public class GKETests {
 
         // received?
         Assert.assertTrue(listenerBob.hasReceivedMessage());
+
+        
         
         //Bob to claire 
         TCPChannel bob2claire = new TCPChannel(PORT7781, true, "b2c");
         TCPChannel claire2bob = new TCPChannel(PORT7781, false, "c2b");
         recipients.clear();
         recipients.add(CLAIRE);
-        asapJavaApplicationBob.sendASAPMessage(APP_FORMAT, "yourSchema://yourURI", recipients, TESTMESSAGE2);
+        asapJavaApplicationBob.sendASAPMessage(APP_FORMAT, "yourSchema://yourURI", recipients, TESTMESSAGE_PAYLOAD2);
         bob2claire.start(); claire2bob.start();
         bob2claire.waitForConnection(); claire2bob.waitForConnection();
         ASAPHandleConnectionThread bobEngineThread = new ASAPHandleConnectionThread(asapJavaApplicationBob,
@@ -235,7 +251,7 @@ public class GKETests {
         TCPChannel alice2claire = new TCPChannel(PORT7782, false, "a2c");
         recipients.clear();
         recipients.add(ALICE);
-        asapJavaApplicationClaire.sendASAPMessage(APP_FORMAT, "yourSchema://yourURI", recipients, TESTMESSAGE3);
+        asapJavaApplicationClaire.sendASAPMessage(APP_FORMAT, "yourSchema://yourURI", recipients, TESTMESSAGE_PAYLOAD3);
         claire2alice.start(); alice2claire.start();
         claire2alice.waitForConnection(); alice2claire.waitForConnection();
         ASAPHandleConnectionThread claireEngineThread = new ASAPHandleConnectionThread(asapJavaApplicationClaire,
