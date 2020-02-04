@@ -22,7 +22,7 @@ public class GKEMessage_Impl implements GKEMessage{
         this.sentDate = sentDate;
     }
 
-    public GKEMessage_Impl(CharSequence asapMessage) throws ASAPException {
+    private GKEMessage_Impl(CharSequence asapMessage) throws ASAPException {
         this.deserializeMessage(asapMessage); // throws exception if malformed
 
         // not malformed - set rest of it
@@ -84,7 +84,7 @@ public class GKEMessage_Impl implements GKEMessage{
 
     @Override
     public byte[] getContent() throws ASAPException {
-        throw new ASAPException("not implemented yet");
+        return this.messageBody.toString().getBytes();
     }
 
     @Override

@@ -157,9 +157,9 @@ public class GKETests {
         final int PORT7782 = 7782;
         
         
-        final GKEMessage testMessage1 = new GKEMessage_Impl(testMessageString1);
-        final GKEMessage testMessage2 = new GKEMessage_Impl(testMessageString2);
-        final GKEMessage testMessage3 = new GKEMessage_Impl(testMessageString3);
+        final GKEMessage testMessage1 = new GKEMessage_Impl("Alice", testMessageString1, new Date());
+        final GKEMessage testMessage2 = new GKEMessage_Impl("Bob", testMessageString2, new Date());
+        final GKEMessage testMessage3 = new GKEMessage_Impl("Claire", testMessageString3, new Date());
         
         
         final byte[] TESTMESSAGE_PAYLOAD1 = testMessage1.getContent();
