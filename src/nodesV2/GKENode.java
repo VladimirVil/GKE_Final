@@ -54,316 +54,53 @@ public class GKENode implements ASAPJavaApplication{
 	//hex = hex.replaceAll("\s+", "");
 	final static BigInteger base = BigInteger.valueOf(Integer.parseInt(hex, 16));
 	public static final CharSequence APP = "GKE";
-	private MultiASAPEngineFS multiEngine;
+
+	
+	
 	CharSequence owner;
-	CharSequence folder;
+	//CharSequence folder;
 	Collection<CharSequence> formats;
-	Collection<CharSequence> recipents;
     private GKEMessage_Impl[] messages = null;
 
 	BigInteger pubKey; // this one will be also used as a order identificator
 
 	private Map<CharSequence, ASAPMessageReceivedListener> messageReceivedListener = new HashMap<>();
+	private ASAPJavaApplication asap;
 
 	GKENode(BigInteger pubKey) throws IOException, ASAPException {
 		this.pubKey = pubKey;
 	}
 	
-	public GKENode(BigInteger pubkey, String owner, String folder, Collection<CharSequence> formats, Collection<CharSequence> recipents)
+	public GKENode(BigInteger pubkey, String owner, String folder, Collection<CharSequence> formats)
 			throws IOException, ASAPException {
 		this.pubKey = pubKey;
-		//this.asap = ASAPJavaApplicationFS.createASAPJavaApplication("TestAliceNoUSe", "test/ALiceNoUse", formats);
+		this.asap = ASAPJavaApplicationFS.createASAPJavaApplication(owner, folder, formats);
 		this.owner = owner;
-		this.folder = folder;
+		//this.folder = folder;
 		this.formats = formats;
-		this.multiEngine = this.createMulitEngine();
-		this.recipents = recipents;
-
-		if (formats != null && !formats.isEmpty()) {
-			// ensure that supported format engine are up and running
-			for (CharSequence format : formats) {
-				System.out.println("GKENode(..): createEngineByFormat: (format=" + format + ")");
-				ASAPEngine engine = this.multiEngine.createEngineByFormat(format);
-				
-				// Set up manamengt storage(s?)
-	        	System.out.println("engine 'name,format:" + owner + " " + format + "', manament storage set==" + engine.isASAPManagementStorageSet());
-	        	
-	        	ASAPStorage storage = ASAPEngineFS.getASAPStorage(owner, folder, APP);
-	        	engine.addRecipient("gke://"+owner, owner);
-	        	System.out.println("... storage: owner:" + storage.getOwner()+ ",chan URIs:"+storage.getChannelURIs());
-
-	            engine.setASAPManagementStorage(ASAPEngineFS.getASAPStorage(owner,
-	                    //TESTS_ROOT_FOLDER + "/" + owner + "/ASAPManagement",
-	            		"/home/vova/eclipse-workspace/GKE/root/" + owner + "/ASAPManagement",  
-	            		"asap/control"));
-	                    //ASAP_1_0.ASAP_MANAGEMENT_FORMAT));
-	            
-	            System.out.println("engine 'name,format:" + owner + " " + format + "', manament storage set==" + engine.isASAPManagementStorageSet());
-	            
-			}
-		}
 	}
-		
-	public GKENode(BigInteger pubkey, String owner, String folder, Collection<CharSequence> formats)
-				throws IOException, ASAPException {
-			this.pubKey = pubKey;
-			//this.asap = ASAPJavaApplicationFS.createASAPJavaApplication("TestAliceNoUSe", "test/ALiceNoUse", formats);
-			this.owner = owner;
-			this.folder = folder;
-			this.formats = formats;
-			this.multiEngine = this.createMulitEngine();
-
-			if (formats != null && !formats.isEmpty()) {
-				// ensure that supported format engine are up and running
-				for (CharSequence format : formats) {
-					System.out.println("GKENode(..): createEngineByFormat: (format=" + format + ")");
-					ASAPEngine engine = this.multiEngine.createEngineByFormat(format);
-					
-					// Set up manamengt storage(s?)
-		        	System.out.println("engine 'name,format:" + owner + " " + format + "', manament storage set==" + engine.isASAPManagementStorageSet());
-		        	
-		        	ASAPStorage storage = ASAPEngineFS.getASAPStorage(owner, folder, APP);
-		        	engine.addRecipient("gke://"+owner, owner);
-		        	System.out.println("... storage: owner:" + storage.getOwner()+ ",chan URIs:"+storage.getChannelURIs());
-
-		            engine.setASAPManagementStorage(ASAPEngineFS.getASAPStorage(owner,
-		                    //TESTS_ROOT_FOLDER + "/" + owner + "/ASAPManagement",
-		            		"/home/vova/eclipse-workspace/GKE/root/" + owner + "/ASAPManagement",  
-		            		"asap/control"));
-		                    //ASAP_1_0.ASAP_MANAGEMENT_FORMAT));
-		            
-		            System.out.println("engine 'name,format:" + owner + " " + format + "', manament storage set==" + engine.isASAPManagementStorageSet());
-		            
-				}
-			}
-
-	}
-		
-		
-        /*ASAPStorage storage = ASAPEngineFS.getASAPStorage(owner, folder, APP);
-        if(!storage.isASAPManagementStorageSet()) {
-            storage.setASAPManagementStorage(ASAPEngineFS.getASAPStorage(owner,
-                    TESTS_ROOT_FOLDER + "/" + owner + "/ASAPManagement",
-                    ASAP_1_0.ASAP_MANAGEMENT_FORMAT));
-        }
-
-        this.storages.put(this.getStorageKey(owner, APP), storage);*/
-        
-
-
-//
-//	public GKENode(BigInteger pubkey, String name, String folder, Collection<CharSequence> formats)
-//			throws IOException, ASAPException {
-//		this.pubKey = pubKey;
-//		this.asap = ASAPJavaApplicationFS.createASAPJavaApplication("TestAliceNoUSe", "test/ALiceNoUse", formats);
-//		this.name = name;
-//		this.folder = folder;
-//		this.formats = formats;
-//		this.multiEngine = this.getMulitEngine();
-//
-//		if (formats != null && !formats.isEmpty()) {
-//			// ensure that supported format engine are up and running
-//			for (CharSequence i : formats) {
-//				this.multiEngine.createEngineByFormat(i);
-//			}
-//		}
-//	}
-//
-//	public void sendMessage(CharSequence format, CharSequence uri, Collection<CharSequence> recipents, byte[] message)
-//			throws ASAPException, IOException {
-//		this.asap.sendASAPMessage(format, uri, recipents, message);
-//	}
-//
-//	private Map<CharSequence, ASAPMessageReceivedListener> messageReceivedListener = new HashMap<>();
-//
-//	// @Override
-//	public void setASAPMessageReceivedListener(CharSequence format, ASAPMessageReceivedListener listener)
-//			throws ASAPException, IOException {
-//
-//		// wrap receiver and add listener to multiengine
-//		// ASAPStorage appStorage = ASAPEngineFS.getASAPStorage(APP, folder);
-//		System.out.println("**********************************************************************");
-//		System.out.println("Name is " + this.name);
-//		System.out.println(this.folder.chars());
-//		System.out.println("format: ");
-//		format.chars().forEachOrdered(System.out::println);
-//		this.getMulitEngine().setASAPChunkReceivedListener(format, new MessageChunkReceivedListenerWrapper(listener));
-//
-//		// set with multi engine
-//		this.messageReceivedListener.put(format, listener);
-//		System.out.println("**********************************************************************");
-//		System.out.println("Finished listener");
-//		System.out.println(this.folder.chars());
-//	}
-//
-//	private MultiASAPEngineFS getMulitEngine() throws IOException, ASAPException {
-//		// TODO: re-create any time - keep track of potential changes in external
-//		// storage (file system)?
-//		MultiASAPEngineFS multiEngine = MultiASAPEngineFS_Impl.createMultiEngine(name, folder,
-//				MultiASAPEngineFS.DEFAULT_MAX_PROCESSING_TIME, null);
-//
-//		for (CharSequence format : this.messageReceivedListener.keySet()) {
-//			ASAPMessageReceivedListener listener = this.messageReceivedListener.get(format);
-//			multiEngine.setASAPChunkReceivedListener(format, new MessageChunkReceivedListenerWrapper(listener));
-//		}
-//
-//		return multiEngine;
-//	}
-//
-//	public ASAPJavaApplication getAsap() {
-//		return asap;
-//	}
-//
-//	public void setAsap(ASAPJavaApplication asap) {
-//		this.asap = asap;
-//	}
-//
-//	public BigInteger getPubKey() {
-//		return pubKey;
-//	}
-//
-//	public void setPubKey(BigInteger pubKey) {
-//		this.pubKey = pubKey;
-//	}
-//
-//	public static CharSequence getApp() {
-//		return APP;
-//	}
-//
-//	public CharSequence getName() {
-//		return name;
-//	}
-//
-//	public void setName(CharSequence name) {
-//		this.name = name;
-//	}
-//
-//	public CharSequence getFolder() {
-//		return folder;
-//	}
-//
-//	public void setFolder(CharSequence folder) {
-//		this.folder = folder;
-//	}
-//
-//	public Collection<CharSequence> getFormats() {
-//		return formats;
-//	}
-//
-//	public void setFormats(Collection<CharSequence> formats) {
-//		this.formats = formats;
-//	}
-//
-//	private String getLogStart() {
-//		return this.getClass().getSimpleName() + ": ";
-//	}
-//
-//	private class MessageChunkReceivedListenerWrapper implements ASAPChunkReceivedListener {
-//		private final ASAPMessageReceivedListener listener;
-//
-//		public MessageChunkReceivedListenerWrapper(ASAPMessageReceivedListener listener) throws ASAPException {
-//			if (listener == null)
-//				throw new ASAPException("listener must not be null");
-//			this.listener = listener;
-//		}
-//
-//		@Override
-//		public void chunkReceived(String format, String sender, String uri, int era) {
-//			System.out.println(getLogStart() + "chunk received - convert to asap message received");
-//			try {
-//				ASAPEngine engine = this.getMultiEngine().getEngineByFormat(format);
-//				ASAPMessages messages = engine.getIncomingChunkStorage(sender).getASAPChunkCache(uri, era);
-//				this.listener.asapMessagesReceived(messages);
-//				System.out.println("************Inside listener*****");
-//				System.out.println("**");
-//				System.out.println("**");
-//				System.out.println("**");
-//				System.out.println("**");
-//				System.out.println("**");
-//				System.out.println("**");
-//			} catch (ASAPException | IOException e) {
-//				System.out.println(getLogStart() + e.getLocalizedMessage());
-//			}
-//		}
-//
-//		public MultiASAPEngineFS getMultiEngine() {
-//			return multiEngine;
-//		}
-//
-//	}
-//
-//	public MultiASAPEngineFS getMultiEngine() {
-//		return multiEngine;
-//	}
-//
-//	public void setMultiEngine(MultiASAPEngineFS multiEngine) {
-//		this.multiEngine = multiEngine;
-//	}
-
+	
 	@Override
 	public void handleConnection(InputStream inputStream, OutputStream outputStream) throws IOException, ASAPException {
-		// TODO Auto-generated method stub
-		System.out.println("handleConnection(..)");
-		//ASAPEngine engine = this.multiEngine/*createMulitEngine()*/.getEngineByFormat(APP);
-		//ASAPMessageReceivedListener listener = this.messageReceivedListener.get(APP);
-		//engine.handleConnection(inputStream, outputStream, engine.);
-		this.multiEngine.handleConnection(inputStream, outputStream);
+		this.asap.handleConnection(inputStream, outputStream);
 	}
 
 	@Override
-	public void sendASAPMessage(CharSequence format, CharSequence uri, Collection<CharSequence> recipents, byte[] message)
+	public void sendASAPMessage(CharSequence format, CharSequence uri, Collection<CharSequence> recipients, byte[] message)
 			throws ASAPException, IOException {
-		
-		System.out.println("sendASAPMessage(format="+format+",uri="+uri+")");
-		
-		ASAPEngine engine = this.multiEngine/*createMulitEngine()*/.getEngineByFormat(format);
-
-        engine.createChannel(uri, recipents);
-        engine.add(uri, message);
-   
-  
+		this.asap.sendASAPMessage(format, uri, recipients, message);  
 	}
 
 	@Override
 	public void setASAPMessageReceivedListener(CharSequence format, ASAPMessageReceivedListener listener)
 			throws ASAPException, IOException {
-        // set with multi engine
-		
-        // wrap receiver and add listener to multiengine
-        this.multiEngine/*createMulitEngine()*/.setASAPChunkReceivedListener(format, new MessageListenerWrapper(listener));
-
-
-        this.messageReceivedListener.put(format, listener);
-		
+		// TODO: possibly add additional code here later
+		this.asap.setASAPMessageReceivedListener(format, listener);
 	}
-	
-	private MultiASAPEngineFS createMulitEngine() throws IOException, ASAPException {
-		// TODO: re-create any time - keep track of potential changes in external
-		// storage (file system)?
-		MultiASAPEngineFS multiEngine = MultiASAPEngineFS_Impl.createMultiEngine(owner, folder,
-				MultiASAPEngineFS.DEFAULT_MAX_PROCESSING_TIME, null);
-
-		for (CharSequence format : this.messageReceivedListener.keySet()) {
-			ASAPMessageReceivedListener listener = this.messageReceivedListener.get(format);
-
-			multiEngine.setASAPChunkReceivedListener(format, new MessageListenerWrapper(listener));
-		}
-
-		return multiEngine;
-	}
-	
-	
+		
 	private String getLogStart() {
 		return this.getClass().getSimpleName() + ": ";
 	}	
-
-	public MultiASAPEngineFS getMultiEngine() {
-		return multiEngine;
-	}
-
-	public void setMultiEngine(MultiASAPEngineFS multiEngine) {
-		this.multiEngine = multiEngine;
-	}
 
 	public CharSequence getName() {
 		return owner;
@@ -373,13 +110,13 @@ public class GKENode implements ASAPJavaApplication{
 		this.owner = name;
 	}
 
-	public CharSequence getFolder() {
-		return folder;
-	}
+	//public CharSequence getFolder() {
+	//	return folder;
+	//}
 
-	public void setFolder(CharSequence folder) {
-		this.folder = folder;
-	}
+	//public void setFolder(CharSequence folder) {
+	//	this.folder = folder;
+	//}
 
 	public Collection<CharSequence> getFormats() {
 		return formats;
@@ -413,14 +150,6 @@ public class GKENode implements ASAPJavaApplication{
 		return APP;
 	}
 
-	public Collection<CharSequence> getRecipents() {
-		return recipents;
-	}
-
-	public void setRecipents(Collection<CharSequence> recipents) {
-		this.recipents = recipents;
-	}
-
 	public Map<CharSequence, ASAPMessageReceivedListener> getMessageReceivedListener() {
 		return messageReceivedListener;
 	}
@@ -448,8 +177,8 @@ public class GKENode implements ASAPJavaApplication{
 	    }
 		@Override
 		public void chunkReceived(String format, String sender, String uri, int era) {
-			
-			 System.out.println(getLogStart() + "Chunk received - convert to gke message listener");
+			// TODO: possible update later
+			 /*System.out.println(getLogStart() + "Chunk received - convert to gke message listener");
 	         try {
 	             ASAPEngine engine = multiEngine.getEngineByFormat(APP);
 	             //will probably need to adjust to GKEMessage
@@ -457,7 +186,7 @@ public class GKENode implements ASAPJavaApplication{
 	             this.listener.asapMessagesReceived(messages);
 	         } catch (ASAPException | IOException e) {
 	             System.err.println(getLogStart() + e.getLocalizedMessage());
-	         }
+	         }*/
 	     }
 	}
 }
