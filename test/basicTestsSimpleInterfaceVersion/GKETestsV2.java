@@ -7,6 +7,9 @@ import net.sharksystem.asap.util.ASAPEngineThread;
 import net.sharksystem.cmdline.TCPChannel;
 import nodesV2.GKENode;
 import nodesV2.GKENode_Impl;
+import nodesV2.GKE_Listener;
+import nodesV2.GKEMessage;
+import nodesV2.GKEMessage_Impl;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -14,7 +17,9 @@ import org.junit.Test;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashSet;
+import java.util.Iterator;
 
 public class GKETestsV2 {
     public static final String ALICE = "Alice";
@@ -26,9 +31,6 @@ public class GKETestsV2 {
     public static final String CLAIRE_ROOT_FOLDER = TESTS_ROOT_FOLDER + "Claire";
 
     private static final CharSequence APP_FORMAT = "TEST_FORMAT";
-    private static final byte[] TESTMESSAGE1 = "Hallo  Bob Alice here WHatever Bye Bye ".getBytes();
-    private static final byte[] TESTMESSAGE2 = "Hallo  Claire Bob here Bye ".getBytes();
-    private static final byte[] TESTMESSAGE3 = "Hallo   Alice Claire here Bye Bye ".getBytes();
 
 
 
@@ -40,7 +42,16 @@ public class GKETestsV2 {
 
 
     @Test
-    public void usageTest() throws IOException, ASAPException, InterruptedException {
+    public void usageTest2() throws IOException, ASAPException, InterruptedException {
+        final String TESTMESSAGEString1 = "Hallo  Bob Alice here WHatever Bye Bye ";
+        final String TESTMESSAGEString2 = "Hallo  Claire Bob here Bye ";
+        final String TESTMESSAGEString3 = "Hallo   Alice Claire here Bye Bye ";
+        
+        GKEMessage TESTMESSAGE1 = new GKEMessage_Impl("Alice", TESTMESSAGEString1, new Date());
+        GKEMessage TESTMESSAGE2 = new GKEMessage_Impl("Bob", TESTMESSAGEString2, new Date());
+        GKEMessage TESTMESSAGE3 = new GKEMessage_Impl("Claire", TESTMESSAGEString3, new Date());
+        
+        
         ASAPEngineFS.removeFolder(TESTS_ROOT_FOLDER);
         Collection<CharSequence> formats = new HashSet<>();
         formats.add(APP_FORMAT);
@@ -52,8 +63,8 @@ public class GKETestsV2 {
 
 
 
-        asapJavaApplicationAlice.sendASAPMessage(APP_FORMAT, "yourSchema://yourURI", recipients, TESTMESSAGE1);
-        asapJavaApplicationAlice.setASAPMessageReceivedListener(APP_FORMAT, new ListenerExample());
+        asapJavaApplicationAlice.sendASAPMessage(APP_FORMAT, "yourSchema://yourURI", recipients, TESTMESSAGE1.getSerializedMessage().toString().getBytes());
+        asapJavaApplicationAlice.setASAPMessageReceivedListener(APP_FORMAT, new GKE_Listener());
 
         // create bob engine
         GKENode asapJavaApplicationBob =
@@ -61,9 +72,9 @@ public class GKETestsV2 {
 
         GKENode asapJavaApplicationClaire =
                 new GKENode(PUB1, CLAIRE, CLAIRE_ROOT_FOLDER, formats);
-        ListenerExample listenerAlice = new ListenerExample();
-        ListenerExample listenerBob = new ListenerExample();
-        ListenerExample listenerClaire = new ListenerExample();
+        GKE_Listener listenerAlice = new GKE_Listener();
+        GKE_Listener listenerBob = new GKE_Listener();
+        GKE_Listener listenerClaire = new GKE_Listener();
         
         
         asapJavaApplicationAlice.setASAPMessageReceivedListener(APP_FORMAT, listenerAlice);
@@ -100,14 +111,29 @@ public class GKETestsV2 {
         ///////////////////////////////////////////////////////////////////////////////////////////////////
 
         // received?
-        Assert.assertTrue(listenerBob.hasReceivedMessage()); // TODO: fix here
+        Assert.assertTrue(listenerBob.hasReceivedMessage());
+        ASAPMessages bobMessages = listenerBob.popASAPMessages();
+        assert bobMessages.size() == 1;
+        
+        Iterator<byte[]> iter = bobMessages.getMessages();
+        boolean iteratorCalled = false;
+        while (iter.hasNext()) {
+        	byte[] rawmsgBytes = iter.next();
+        	String rawmsgString = new String(rawmsgBytes);
+        	CharSequence charSeq = rawmsgString;
+        	GKEMessage msg = new GKEMessage_Impl(charSeq);
+        	System.out.println("msg=" + rawmsgString);;
+        	assert msg.getContentAsString().equals(TESTMESSAGEString1);
+        	iteratorCalled = true;
+        }
+        assert iteratorCalled;
         
         //Bob to claire 
         TCPChannel bob2claire = new TCPChannel(PORT7784, true, "b2c");
         TCPChannel claire2bob = new TCPChannel(PORT7784, false, "c2b");
         recipients.clear();
         recipients.add(CLAIRE);
-        asapJavaApplicationBob.sendASAPMessage(APP_FORMAT, "yourSchema://yourURI", recipients, TESTMESSAGE2);
+        asapJavaApplicationBob.sendASAPMessage(APP_FORMAT, "yourSchema://yourURI", recipients, TESTMESSAGE2.getContent());
         bob2claire.start(); claire2bob.start();
         bob2claire.waitForConnection(); claire2bob.waitForConnection();
         ASAPHandleConnectionThread bobEngineThread = new ASAPHandleConnectionThread(asapJavaApplicationBob,
@@ -124,7 +150,7 @@ public class GKETestsV2 {
         TCPChannel alice2claire = new TCPChannel(PORT7785, false, "a2c");
         recipients.clear();
         recipients.add(ALICE);
-        asapJavaApplicationClaire.sendASAPMessage(APP_FORMAT, "yourSchema://yourURI", recipients, TESTMESSAGE3);
+        asapJavaApplicationClaire.sendASAPMessage(APP_FORMAT, "yourSchema://yourURI", recipients, TESTMESSAGE3.getContent());
         claire2alice.start(); alice2claire.start();
         claire2alice.waitForConnection(); alice2claire.waitForConnection();
         ASAPHandleConnectionThread claireEngineThread = new ASAPHandleConnectionThread(asapJavaApplicationClaire,
@@ -137,25 +163,5 @@ public class GKETestsV2 {
         Assert.assertTrue(listenerAlice.hasReceivedMessage());
         
    
-    }
-
-
-    private class ListenerExample implements ASAPMessageReceivedListener {
-
-        private boolean hasReceivedMessage = false;
-
-        @Override
-        public void asapMessagesReceived(ASAPMessages messages) {
-            try {
-                System.out.println("#message == " + messages.size());
-                this.hasReceivedMessage = true;
-            } catch (IOException e) {
-                // do something with it.
-            }
-        }
-
-        public boolean hasReceivedMessage() {
-            return this.hasReceivedMessage;
-        }
     }
 }

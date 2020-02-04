@@ -14,6 +14,9 @@ public interface GKEMessage {
 
     /** return message content as string */
     CharSequence getContentAsString() throws ASAPException, IOException;
+    
+    /** return whole message including additional fields (keys for instance) */
+    CharSequence getSerializedMessage();
 
     /** get sent date */
     Date getSentDate() throws ASAPException, IOException;
