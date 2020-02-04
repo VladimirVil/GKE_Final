@@ -1,0 +1,6 @@
+*.class
+*.swp
+
+# just data files from running ASAP
+/root
+/tests
