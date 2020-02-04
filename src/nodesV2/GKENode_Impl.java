@@ -85,8 +85,8 @@ public class GKENode_Impl {
 	
 
 	System.out.println("GKENode_Impl: Create GKENodes:");
-	alice = new GKENode(pub1, ALICE, folder1, formats, recipentsAlice);
-	bob = new GKENode(pub2, BOB, folder2, formats, recipentsBob);
+	alice = new GKENode(pub1, ALICE, folder1, formats);
+	bob = new GKENode(pub2, BOB, folder2, formats);
 	//claire = new GKENode(pub3, CLAIRE, folder3, formats, recipentsClaire);
 
     // create connections for both sides

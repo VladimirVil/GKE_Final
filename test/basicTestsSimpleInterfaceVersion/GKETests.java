@@ -7,6 +7,7 @@ import net.sharksystem.asap.util.ASAPEngineThread;
 import net.sharksystem.cmdline.TCPChannel;
 import nodesV2.GKEMessage;
 import nodesV2.GKEMessage_Impl;
+import nodesV2.GKE_Listener;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -20,8 +21,6 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.Queue;
 import java.util.Random;
 
 public class GKETests {
@@ -57,7 +56,7 @@ public class GKETests {
         recipients.add(BOB);
 
         asapJavaApplicationAlice.sendASAPMessage(APP_FORMAT, "yourSchema://yourURI", recipients, TESTMESSAGE1);
-        asapJavaApplicationAlice.setASAPMessageReceivedListener(APP_FORMAT, new ListenerExample());
+        asapJavaApplicationAlice.setASAPMessageReceivedListener(APP_FORMAT, new GKE_Listener());
 
         // create bob engine
         ASAPJavaApplication asapJavaApplicationBob =
@@ -65,9 +64,9 @@ public class GKETests {
 
         ASAPJavaApplication asapJavaApplicationClaire =
                 ASAPJavaApplicationFS.createASAPJavaApplication(CLAIRE, CLAIRE_ROOT_FOLDER, formats);
-        ListenerExample listenerAlice = new ListenerExample();
-        ListenerExample listenerBob = new ListenerExample();
-        ListenerExample listenerClaire = new ListenerExample();
+        GKE_Listener listenerAlice = new GKE_Listener();
+        GKE_Listener listenerBob = new GKE_Listener();
+        GKE_Listener listenerClaire = new GKE_Listener();
         
         
         asapJavaApplicationAlice.setASAPMessageReceivedListener(APP_FORMAT, listenerAlice);
@@ -194,7 +193,7 @@ public class GKETests {
         recipients.add(BOB);
 
         asapJavaApplicationAlice.sendASAPMessage(APP_FORMAT, "yourSchema://yourURI", recipients, TESTMESSAGE_PAYLOAD1);
-        asapJavaApplicationAlice.setASAPMessageReceivedListener(APP_FORMAT, new ListenerExample());
+        asapJavaApplicationAlice.setASAPMessageReceivedListener(APP_FORMAT, new GKE_Listener());
 
         // create bob engine
         ASAPJavaApplication asapJavaApplicationBob =
@@ -202,9 +201,9 @@ public class GKETests {
 
         ASAPJavaApplication asapJavaApplicationClaire =
                 ASAPJavaApplicationFS.createASAPJavaApplication(CLAIRE, CLAIRE_ROOT_FOLDER, formats);
-        ListenerExample listenerAlice = new ListenerExample();
-        ListenerExample listenerBob = new ListenerExample();
-        ListenerExample listenerClaire = new ListenerExample();
+        GKE_Listener listenerAlice = new GKE_Listener();
+        GKE_Listener listenerBob = new GKE_Listener();
+        GKE_Listener listenerClaire = new GKE_Listener();
         
         
         asapJavaApplicationAlice.setASAPMessageReceivedListener(APP_FORMAT, listenerAlice);
@@ -282,34 +281,5 @@ public class GKETests {
         aliceChannel.close(); bobChannel.close();
         bob2claire.close(); claire2bob.close(); 
         claire2alice.close(); alice2claire.close();
-    }
-
-    private class ListenerExample implements ASAPMessageReceivedListener {
-
-        private boolean hasReceivedMessage = false;
-        private Queue<ASAPMessages> messagesList;
-        
-        public ListenerExample() {
-        	this.messagesList = new LinkedList<ASAPMessages>();
-        }
-
-        @Override
-        public void asapMessagesReceived(ASAPMessages messages) {
-            try {
-                System.out.println("#message == " + messages.size());
-                this.hasReceivedMessage = true;
-                this.messagesList.add(messages);
-            } catch (IOException e) {
-                // do something with it.
-            }
-        }
-
-        public boolean hasReceivedMessage() {
-            return this.hasReceivedMessage;
-        }
-        
-        public ASAPMessages popASAPMessages() {
-        	return messagesList.remove();
-        }
     }
 }
