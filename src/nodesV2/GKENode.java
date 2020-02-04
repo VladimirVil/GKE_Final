@@ -62,18 +62,14 @@ public class GKENode implements ASAPJavaApplication{
 	Collection<CharSequence> formats;
     private GKEMessage_Impl[] messages = null;
 
-	BigInteger pubKey; // this one will be also used as a order identificator
-
 	private Map<CharSequence, ASAPMessageReceivedListener> messageReceivedListener = new HashMap<>();
 	private ASAPJavaApplication asap;
 
-	GKENode(BigInteger pubKey) throws IOException, ASAPException {
-		this.pubKey = pubKey;
+	GKENode() throws IOException, ASAPException {
 	}
 	
 	public GKENode(BigInteger pubkey, String owner, String folder, Collection<CharSequence> formats)
 			throws IOException, ASAPException {
-		this.pubKey = pubKey;
 		this.asap = ASAPJavaApplicationFS.createASAPJavaApplication(owner, folder, formats);
 		this.owner = owner;
 		//this.folder = folder;
@@ -124,14 +120,6 @@ public class GKENode implements ASAPJavaApplication{
 
 	public void setFormats(Collection<CharSequence> formats) {
 		this.formats = formats;
-	}
-
-	public BigInteger getPubKey() {
-		return pubKey;
-	}
-
-	public void setPubKey(BigInteger pubKey) {
-		this.pubKey = pubKey;
 	}
 
 	public static BigInteger getGenerator() {
