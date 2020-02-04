@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -146,13 +147,17 @@ public class GKENode implements ASAPJavaApplication{
 		this.messageReceivedListener = messageReceivedListener;
 	}
 
-	public GKEMessage_Impl[] getMessages() {
-		return messages;
-	}
+	//public GKEMessage_Impl[] getMessages() {
+	//	return messages;
+	//}
 
 	public void setMessages(GKEMessage_Impl[] messages) {
 		this.messages = messages;
 	}
+	
+	//public ArrayList<GKE_MessageImpl> getMessages() {
+	//	this.asap.
+	//}
 	
 	private class MessageListenerWrapper implements ASAPChunkReceivedListener {
 	    private final ASAPMessageReceivedListener listener;

@@ -15,9 +15,13 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.Queue;
 import java.util.Random;
 
 public class GKETests {
@@ -79,7 +83,6 @@ public class GKETests {
         TCPChannel bobChannel = new TCPChannel(PORT7777, false, "b2a");
 
         aliceChannel.start(); bobChannel.start();
-
         aliceChannel.waitForConnection(); bobChannel.waitForConnection();
 
         ASAPHandleConnectionThread aliceEngineThread = new ASAPHandleConnectionThread(asapJavaApplicationAlice,
@@ -101,6 +104,19 @@ public class GKETests {
 
         // received?
         Assert.assertTrue(listenerBob.hasReceivedMessage());
+        ASAPMessages bobMessages = listenerBob.popASAPMessages();
+        assert bobMessages.size() == 1;
+        
+        Iterator<byte[]> iter = bobMessages.getMessages();
+        boolean iteratorCalled = false;
+        while (iter.hasNext()) {
+        	byte[] msg = iter.next();
+        	String msgString = new String(msg);
+        	System.out.println("msg=" + msgString);;
+        	assert msgString.contentEquals(new String(TESTMESSAGE1));
+        	iteratorCalled = true;
+        }
+        assert iteratorCalled;
         
         //Bob to claire 
         TCPChannel bob2claire = new TCPChannel(PORT7778, true, "b2c");
@@ -271,12 +287,18 @@ public class GKETests {
     private class ListenerExample implements ASAPMessageReceivedListener {
 
         private boolean hasReceivedMessage = false;
+        private Queue<ASAPMessages> messagesList;
+        
+        public ListenerExample() {
+        	this.messagesList = new LinkedList<ASAPMessages>();
+        }
 
         @Override
         public void asapMessagesReceived(ASAPMessages messages) {
             try {
                 System.out.println("#message == " + messages.size());
                 this.hasReceivedMessage = true;
+                this.messagesList.add(messages);
             } catch (IOException e) {
                 // do something with it.
             }
@@ -284,6 +306,10 @@ public class GKETests {
 
         public boolean hasReceivedMessage() {
             return this.hasReceivedMessage;
+        }
+        
+        public ASAPMessages popASAPMessages() {
+        	return messagesList.remove();
         }
     }
 }
