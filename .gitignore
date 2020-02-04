@@ -4,3 +4,5 @@
 # just data files from running ASAP
 /root
 /tests
+/tests_message_impl_for_2_users
+
