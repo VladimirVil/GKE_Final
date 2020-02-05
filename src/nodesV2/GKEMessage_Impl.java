@@ -3,6 +3,7 @@ package nodesV2;
 import net.sharksystem.asap.ASAPException;
 
 import java.io.IOException;
+import java.math.BigInteger;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.util.Date;
@@ -133,6 +134,21 @@ public class GKEMessage_Impl implements GKEMessage{
 
 	public void setSerializedMessage(CharSequence serializedMessage) {
 		this.serializedMessage = serializedMessage;
+	}
+	
+	public BigInteger parseSpecificElement(String msg, int position) {
+		
+		BigInteger result;
+		String[] parts = msg.split("^^^^");
+		if ((parts.length -2) < position) {
+			result = BigInteger.valueOf(0);
+		}
+		else {
+			result = BigInteger.valueOf(Integer.parseInt(parts[position+2], 10));
+			System.out.println("result to retun : " + result);
+		}
+		
+		return result;
 	}
 }
 
