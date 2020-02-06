@@ -24,6 +24,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Random;
 import java.util.StringJoiner;
 
 public class GKETestsV3 {
@@ -31,6 +32,10 @@ public class GKETestsV3 {
     public static final String BOB = "Bob";
     public static final String CLAIRE = "Claire";
     public static final String ERIC = "Eric";
+    public static final int MIN_RANGE = 3;
+    public static final int MAX_RANGE = 33;
+
+    
 
     public static final String TESTS_ROOT_FOLDER = "tests2/";
     public static final String ALICE_ROOT_FOLDER = TESTS_ROOT_FOLDER + "Alice";
@@ -47,18 +52,41 @@ public class GKETestsV3 {
     private static final int PORT7784 = 7784;
     private static final int PORT7785 = 7785;
     private static final int PORT7786 = 7786;
-
-    private static final BigInteger PUB1 = new BigInteger("11111");
-
+    private static final int PORT7787 = 7787;
+    private static final int PORT7788 = 7788;
+    private static final int PORT7789 = 7789;
+    private static final int PORT7790 = 7790;
 
 
     @Test
     public void usageTest2() throws IOException, ASAPException, InterruptedException {
-        final String TESTMESSAGEString1 = "Hallo  Bob Alice here WHatever Bye Bye ";
-        final String TESTMESSAGEString2 = "Hallo  Claire Bob here Bye ";
-        final String TESTMESSAGEString3 = "Hallo   Alice Claire here Bye Bye ";
-        int aRandom=7;
-        List tokens = SecurityUtil.getTokenList(Collections.EMPTY_LIST,aRandom);
+//        final String TESTMESSAGEString1 = "Hallo  Bob Alice here WHatever Bye Bye ";
+//        final String TESTMESSAGEString2 = "Hallo  Claire Bob here Bye ";
+//        final String TESTMESSAGEString3 = "Hallo   Alice Claire here Bye Bye ";
+        Random rand = new Random();
+        //int aliceSecret = rand.nextInt((MAX_RANGE - MIN_RANGE) + 1) + MIN_RANGE;
+//        int bobSecret = rand.nextInt((MAX_RANGE - MIN_RANGE) + 1) + MIN_RANGE;
+//        int claireSecret = rand.nextInt((MAX_RANGE - MIN_RANGE) + 1) + MIN_RANGE;
+//        int ericSecret = rand.nextInt((MAX_RANGE - MIN_RANGE) + 1) + MIN_RANGE;
+        
+
+        BigInteger aliceSecret = BigInteger.valueOf(rand.nextInt((MAX_RANGE - MIN_RANGE) + 1) + MIN_RANGE);
+        BigInteger bobSecret = BigInteger.valueOf(rand.nextInt((MAX_RANGE - MIN_RANGE) + 1) + MIN_RANGE);
+        BigInteger claireSecret = BigInteger.valueOf(rand.nextInt((MAX_RANGE - MIN_RANGE) + 1) + MIN_RANGE);
+        BigInteger ericSecret = BigInteger.valueOf(rand.nextInt((MAX_RANGE - MIN_RANGE) + 1) + MIN_RANGE);
+        
+        System.out.println("Personal secrets of ALice, Bob, Claire, Eric : " + aliceSecret +  "," + bobSecret + "," + claireSecret + "," + ericSecret);
+
+//        
+//        BigInteger aliceSecret = new BigInteger("7");
+//        BigInteger bobSecret = new BigInteger("9");
+//        BigInteger claireSecret = new BigInteger("11");
+//        BigInteger ericSecret = new BigInteger("17");
+        System.out.println("The numbers are :" + aliceSecret +  " " + bobSecret + " " + claireSecret + " " + ericSecret);
+
+        //creating the first upflow message which is {A', 1} whereby A' is (generator^aliceSecret)mod(prime) and 1 
+        //is a custom help element for further calculations 
+        List tokens = SecurityUtil.getTokenList(Collections.EMPTY_LIST,aliceSecret);
         String aliceMessage=String.join(",", tokens); //
 		GKEMessage TESTMESSAGE1 = new GKEMessage_Impl("Alice", aliceMessage, new Date());
         
@@ -70,7 +98,7 @@ public class GKETestsV3 {
         Collection<CharSequence> recipients = new HashSet<>();
         recipients.add(BOB);
         
-        GKENode asapJavaApplicationAlice =new GKENode(PUB1, ALICE, ALICE_ROOT_FOLDER, formats);
+        GKENode asapJavaApplicationAlice =new GKENode(ALICE, ALICE_ROOT_FOLDER, formats);
 
 
 
@@ -79,13 +107,13 @@ public class GKETestsV3 {
 
         // create bob engine
         GKENode asapJavaApplicationBob =
-                new GKENode(PUB1, BOB, BOB_ROOT_FOLDER, formats);
+                new GKENode(BOB, BOB_ROOT_FOLDER, formats);
 
         GKENode asapJavaApplicationClaire =
-                new GKENode(PUB1, CLAIRE, CLAIRE_ROOT_FOLDER, formats);
+                new GKENode(CLAIRE, CLAIRE_ROOT_FOLDER, formats);
         
         GKENode asapJavaApplicationEric =
-                new GKENode(PUB1, ERIC, ERIC_ROOT_FOLDER, formats);
+                new GKENode(ERIC, ERIC_ROOT_FOLDER, formats);
         GKE_Listener listenerAlice = new GKE_Listener();
         GKE_Listener listenerBob = new GKE_Listener();
         GKE_Listener listenerClaire = new GKE_Listener();
@@ -98,42 +126,24 @@ public class GKETestsV3 {
         asapJavaApplicationClaire.setASAPMessageReceivedListener(APP_FORMAT, listenerClaire);
         asapJavaApplicationEric.setASAPMessageReceivedListener(APP_FORMAT, listenerEric);
 
-
-        ///////////////////////////////////////////////////////////////////////////////////////////////////
-        //                                        create a tcp connection                                //
-        ///////////////////////////////////////////////////////////////////////////////////////////////////
-
         // create connections for both sides
-        TCPChannel aliceChannel = new TCPChannel(PORT7783, true, "a2b");
-        TCPChannel bobChannel = new TCPChannel(PORT7783, false, "b2a");
-
-        aliceChannel.start(); bobChannel.start();
-
-        aliceChannel.waitForConnection(); bobChannel.waitForConnection();
-
+        TCPChannel alice2bob = new TCPChannel(PORT7783, true, "a2b");
+        TCPChannel bob2alice = new TCPChannel(PORT7783, false, "b2a");
+        alice2bob.start(); bob2alice.start();
+        alice2bob.waitForConnection(); bob2alice.waitForConnection();
         ASAPHandleConnectionThread aliceEngineThread = new ASAPHandleConnectionThread(asapJavaApplicationAlice,
-                aliceChannel.getInputStream(), aliceChannel.getOutputStream());
-
+                alice2bob.getInputStream(), alice2bob.getOutputStream());
         aliceEngineThread.start();
-
         // let's start communication
-        asapJavaApplicationBob.handleConnection(bobChannel.getInputStream(), bobChannel.getOutputStream());
-
+        asapJavaApplicationBob.handleConnection(bob2alice.getInputStream(), bob2alice.getOutputStream());
         // wait until communication probably ends
-        Thread.sleep(2000); System.out.flush(); System.err.flush();
+        Thread.sleep(1600); System.out.flush(); System.err.flush();
         // close connections: note ASAPEngine does NOT close any connection!!
-        aliceChannel.close(); bobChannel.close(); Thread.sleep(1000);
-
-        ///////////////////////////////////////////////////////////////////////////////////////////////////
-        //                                            test results                                       //
-        ///////////////////////////////////////////////////////////////////////////////////////////////////
-
-        // received?
+        alice2bob.close(); bob2alice.close(); Thread.sleep(800);
         Assert.assertTrue(listenerBob.hasReceivedMessage());
         ASAPMessages bobMessages = listenerBob.popASAPMessages();
         
         assert bobMessages.size() == 1;
-        
         Iterator<byte[]> iter = bobMessages.getMessages();
         boolean iteratorCalled = false;
         List<String> tokensFromAlice = Collections.EMPTY_LIST;
@@ -142,13 +152,12 @@ public class GKETestsV3 {
         	String rawmsgString = new String(rawmsgBytes);
         	CharSequence charSeq = rawmsgString;
         	GKEMessage msg = new GKEMessage_Impl(charSeq);
-        	System.out.println("<>msg=" + msg.getContentAsString());
+        	//System.out.println("<>msg=" + msg.getContentAsString());
         	tokensFromAlice=Arrays.asList(msg.getContentAsString().toString().split(","));
         	iteratorCalled = true;
         }
         assert iteratorCalled;
-        int bRandom=6;
-        List tokensFromBob = SecurityUtil.getTokenList(tokensFromAlice, bRandom);
+        List tokensFromBob = SecurityUtil.getTokenList(tokensFromAlice, bobSecret);
         
         //Bob to claire 
         TCPChannel bob2claire = new TCPChannel(PORT7784, true, "b2c");
@@ -165,8 +174,8 @@ public class GKETestsV3 {
 
         bobEngineThread.start();
         asapJavaApplicationClaire.handleConnection(claire2bob.getInputStream(), claire2bob.getOutputStream());
-        Thread.sleep(2000); System.out.flush(); System.err.flush();
-        bob2claire.close(); claire2bob.close(); Thread.sleep(1000);
+        Thread.sleep(1800); System.out.flush(); System.err.flush();
+        bob2claire.close(); claire2bob.close(); Thread.sleep(800);
         
         Assert.assertTrue(listenerClaire.hasReceivedMessage());
         ASAPMessages claireMEssages = listenerClaire.popASAPMessages();
@@ -174,17 +183,16 @@ public class GKETestsV3 {
 
         while(iterator.hasNext()) {
         	CharSequence msg = iterator.next();
-        	System.out.println("<<>>received=" + msg);
+        	//System.out.println("<<>>received=" + msg);
         	GKEMessage gkemsg = new GKEMessage_Impl(msg);
-        	System.out.println("<<>>msg=" + gkemsg.getContentAsString());
+        	//System.out.println("<<>>msg=" + gkemsg.getContentAsString());
         	tokensFromBob=Arrays.asList(gkemsg.getContentAsString().toString().split(","));
         }
         
-        int cRandom=5;
-        List tokensFromClaire = SecurityUtil.getTokenList(tokensFromBob, cRandom);
+        List tokensFromClaire = SecurityUtil.getTokenList(tokensFromBob, claireSecret);
 
         
-        //Claire to Alice
+        //Claire to Eric
         TCPChannel claire2eric = new TCPChannel(PORT7786, true, "c2e");
         TCPChannel eric2claire = new TCPChannel(PORT7786, false, "e2c");
         recipients.clear();
@@ -201,8 +209,8 @@ public class GKETestsV3 {
 
         claireEngineThread.start();
         asapJavaApplicationEric.handleConnection(eric2claire.getInputStream(), eric2claire.getOutputStream());
-        Thread.sleep(2000); System.out.flush(); System.err.flush();
-        claire2eric.close(); eric2claire.close(); Thread.sleep(1000);
+        Thread.sleep(1600); System.out.flush(); System.err.flush();
+        claire2eric.close(); eric2claire.close(); Thread.sleep(700);
         Assert.assertTrue(listenerEric.hasReceivedMessage());
         
         ASAPMessages ericMessages = listenerEric.popASAPMessages();
@@ -210,19 +218,147 @@ public class GKETestsV3 {
 
         while(iteratorEric.hasNext()) {
         	CharSequence msg = iteratorEric.next();
+        	//System.out.println("<<>>received=" + msg);
+        	GKEMessage gkemsg = new GKEMessage_Impl(msg);
+        	//System.out.println("<<>>msg=" + gkemsg.getContentAsString());
+        	tokensFromClaire=Arrays.asList(gkemsg.getContentAsString().toString().split(","));
+        }
+        List<String> tokensFromEric = SecurityUtil.getTokenList(tokensFromClaire, ericSecret);
+        String secretEricFinal = SecurityUtil.getSharedSecret(new BigInteger(tokensFromEric.get(0)));
+        System.out.println("Shared secret that eric has is " + secretEricFinal);
+
+
+        List<String> tokensFromEricOriginalCopy = tokensFromEric;
+    //    String secretE = SecurityUtil.getSharedSecret(new BigInteger(tokensFromEric.get(0)));
+//        String secretA = SecurityUtil.getSharedSecret(new BigInteger(tokensFromEric.get(1)), aliceSecret);
+//        String secretB = SecurityUtil.getSharedSecret(new BigInteger(tokensFromEric.get(2)), bobSecret);
+//        String secretC = SecurityUtil.getSharedSecret(new BigInteger(tokensFromEric.get(3)), claireSecret);
+//        
+//        System.out.println(String.format("**%s**%s**%s**%s**",secretA,secretB,secretC,secretEricFinal));
+        //Downflow, one by one
+        //Eric to Alice
+        TCPChannel eric2alice = new TCPChannel(PORT7787, true, "ee2aa");
+        TCPChannel alice2eric = new TCPChannel(PORT7787, false, "aa2ee");
+        recipients.clear();
+        recipients.add(ALICE);
+
+        GKEMessage TESTMESSAGE4 = new GKEMessage_Impl("Eric", String.join(",", tokensFromEric.get(1)), new Date());
+
+        asapJavaApplicationEric.sendASAPMessage(APP_FORMAT, "yourSchema://yourURI", recipients, TESTMESSAGE4.getSerializedMessage().toString().getBytes());
+
+        eric2alice.start(); alice2eric.start();
+        eric2alice.waitForConnection(); alice2eric.waitForConnection();
+        ASAPHandleConnectionThread ericEngineThreadDownflowAlice = new ASAPHandleConnectionThread(asapJavaApplicationEric,
+                eric2alice.getInputStream(), eric2alice.getOutputStream());
+
+        ericEngineThreadDownflowAlice.start();
+        asapJavaApplicationAlice.handleConnection(alice2eric.getInputStream(), alice2eric.getOutputStream());
+        Thread.sleep(1600); System.out.flush(); System.err.flush();
+        eric2alice.close(); alice2eric.close(); Thread.sleep(700);
+        Assert.assertTrue(listenerAlice.hasReceivedMessage());
+        
+        ASAPMessages aliceMessagesDownflow = listenerAlice.popASAPMessages();
+        Iterator<CharSequence> iteratorAlice = aliceMessagesDownflow.getMessagesAsCharSequence();
+
+        while(iteratorAlice.hasNext()) {
+        	CharSequence msg = iteratorAlice.next();
+        	//System.out.println("<<>>received=" + msg);
+        	GKEMessage gkemsg = new GKEMessage_Impl(msg);
+        //	System.out.println("<<>>msg=" + gkemsg.getContentAsString());
+        	tokensFromEric=Arrays.asList(gkemsg.getContentAsString().toString().split(","));
+        }
+        
+        String secretAliceFinal = SecurityUtil.getSharedSecret(new BigInteger(tokensFromEric.get(0)), aliceSecret);
+        System.out.println("Shared secret that alice has is " + secretAliceFinal);
+        
+        //Eric to Bob
+        TCPChannel eric2bob = new TCPChannel(PORT7788, true, "ee2bb");
+        TCPChannel bob2eric = new TCPChannel(PORT7788, false, "bb2ee");
+        recipients.clear();
+        recipients.add(BOB);
+
+        GKEMessage TESTMESSAGE5 = new GKEMessage_Impl("Eric", String.join(",", tokensFromEricOriginalCopy.get(2)), new Date());
+
+        asapJavaApplicationEric.sendASAPMessage(APP_FORMAT, "yourSchema://yourURI", recipients, TESTMESSAGE5.getSerializedMessage().toString().getBytes());
+
+        eric2bob.start(); bob2eric.start();
+        eric2bob.waitForConnection(); bob2eric.waitForConnection();
+        ASAPHandleConnectionThread ericEngineThreadDownflowBob = new ASAPHandleConnectionThread(asapJavaApplicationEric,
+                eric2bob.getInputStream(), eric2bob.getOutputStream());
+
+        ericEngineThreadDownflowBob.start();
+        asapJavaApplicationBob.handleConnection(bob2eric.getInputStream(), bob2eric.getOutputStream());
+        Thread.sleep(1600); System.out.flush(); System.err.flush();
+        eric2bob.close(); bob2eric.close(); Thread.sleep(700);
+        Assert.assertTrue(listenerBob.hasReceivedMessage());
+        
+        ASAPMessages bobMessagesDownflow = listenerBob.popASAPMessages();
+        Iterator<CharSequence> iteratorBobDownflow = bobMessagesDownflow.getMessagesAsCharSequence();
+
+        while(iteratorBobDownflow.hasNext()) {
+        	CharSequence msg = iteratorBobDownflow.next();
         	System.out.println("<<>>received=" + msg);
         	GKEMessage gkemsg = new GKEMessage_Impl(msg);
         	System.out.println("<<>>msg=" + gkemsg.getContentAsString());
-        	tokensFromClaire=Arrays.asList(gkemsg.getContentAsString().toString().split(","));
+        	tokensFromEric=Arrays.asList(gkemsg.getContentAsString().toString().split(","));
         }
-        int eRandom = 4;
-        List<String> tokensForEric = SecurityUtil.getTokenList(tokensFromClaire, eRandom);
         
-        String secretE = SecurityUtil.getSharedSecret(new BigInteger(tokensForEric.get(0)));
-        String secretA = SecurityUtil.getSharedSecret(new BigInteger(tokensForEric.get(1)), aRandom);
-        String secretB = SecurityUtil.getSharedSecret(new BigInteger(tokensForEric.get(2)), bRandom);
-        String secretC = SecurityUtil.getSharedSecret(new BigInteger(tokensForEric.get(3)), cRandom);
+        String secretBobFinal = SecurityUtil.getSharedSecret(new BigInteger(tokensFromEric.get(0)), bobSecret);
+        System.out.println("Shared secret that bob has is " + secretBobFinal);
+
         
-        System.out.println(String.format("**%s**%s**%s**%s**",secretA,secretB,secretC,secretE));
+        //Eric to Claire
+        TCPChannel eric2claireDownflow = new TCPChannel(PORT7789, true, "ee2cc");
+        TCPChannel claire2ericDownflow = new TCPChannel(PORT7789, false, "cc2ee");
+        recipients.clear();
+        recipients.add(CLAIRE);
+
+        GKEMessage TESTMESSAGE6 = new GKEMessage_Impl("Eric", String.join(",", tokensFromEricOriginalCopy.get(3)), new Date());
+
+        asapJavaApplicationEric.sendASAPMessage(APP_FORMAT, "yourSchema://yourURI", recipients, TESTMESSAGE6.getSerializedMessage().toString().getBytes());
+
+        eric2claireDownflow.start(); claire2ericDownflow.start();
+        eric2claireDownflow.waitForConnection(); claire2ericDownflow.waitForConnection();
+        ASAPHandleConnectionThread ericEngineThreadDownflowClaire = new ASAPHandleConnectionThread(asapJavaApplicationEric,
+                eric2claireDownflow.getInputStream(), eric2claireDownflow.getOutputStream());
+
+        ericEngineThreadDownflowClaire.start();
+        asapJavaApplicationClaire.handleConnection(claire2ericDownflow.getInputStream(), claire2ericDownflow.getOutputStream());
+        Thread.sleep(1600); System.out.flush(); System.err.flush();
+        eric2claireDownflow.close(); claire2ericDownflow.close(); Thread.sleep(700);
+        Assert.assertTrue(listenerClaire.hasReceivedMessage());
+        
+        ASAPMessages claireMessagesDownflow = listenerClaire.popASAPMessages();
+        Iterator<CharSequence> iteratorClaireDownflow = claireMessagesDownflow.getMessagesAsCharSequence();
+
+        while(iteratorClaireDownflow.hasNext()) {
+        	CharSequence msg = iteratorClaireDownflow.next();
+        	//System.out.println("<<>>received=" + msg);
+        	GKEMessage gkemsg = new GKEMessage_Impl(msg);
+        	//System.out.println("<<>>msg=" + gkemsg.getContentAsString());
+        	tokensFromEric=Arrays.asList(gkemsg.getContentAsString().toString().split(","));
+
+        }
+        
+        String secretClaireFinal = SecurityUtil.getSharedSecret(new BigInteger(tokensFromEric.get(0)), claireSecret);
+        System.out.println("Shared secret that claire has is " + secretClaireFinal);
+        System.out.println("Testing shared secret is equal for all participants");
+        Thread.sleep(250);
+        Assert.assertTrue(secretAliceFinal.equals(secretBobFinal));
+        Assert.assertTrue(secretBobFinal.equals(secretClaireFinal));
+        Assert.assertTrue(secretClaireFinal.equals(secretEricFinal));
+        Assert.assertTrue(secretEricFinal.equals(secretAliceFinal));
+        System.out.println("Done");
+        System.out.println("Testing shared secret is not equal to personal secret of any of the participants");
+        Assert.assertFalse(secretAliceFinal.equals(aliceSecret.toString()));
+        Assert.assertFalse(secretBobFinal.equals(bobSecret.toString()));
+        Assert.assertFalse(secretClaireFinal.equals(claireSecret.toString()));
+        Assert.assertFalse(secretEricFinal.equals(ericSecret.toString()));
+
+        System.out.println("Shared secrets of ALice, Bob, Claire, Eric : " + secretAliceFinal +  "," + secretBobFinal + "," + secretClaireFinal + "," + secretEricFinal);
+        System.out.println("End");
+
+
+
     }
 }

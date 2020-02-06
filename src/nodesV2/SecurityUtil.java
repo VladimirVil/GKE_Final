@@ -7,11 +7,17 @@ import java.util.stream.Collectors;
 
 public class SecurityUtil {
 
-	public static List<String> getTokenList(List<String> fromPrevious, int randomNumber) {
+	//creates the messages for the upflow
+	//as described in the algorithm, it will be every element from the previous multiplied by the 
+	//current secret + at the end the super element is added as it is. Super element is the first arrived elemnt (order
+	//is important and kept along the whole algorithm)
+	public static List<String> getTokenList(List<String> fromPrevious, BigInteger randomNumber) {
 		System.out.println("using prime :"+GKENode.prime);
-		BigInteger nodeSecret = GKENode.generator.pow(randomNumber).mod(GKENode.prime);
+		BigInteger nodeSecret = GKENode.generator.pow(randomNumber.intValueExact()).mod(GKENode.prime);
+		//first participant (Alice) case
 		if(fromPrevious.isEmpty()) {
 			return Arrays.asList(nodeSecret.toString(),"1");
+		//general case
 		}else {
 			List<String> nextSequence = fromPrevious.stream()
 					.map(e -> nodeSecret.multiply(new BigInteger(e)))
@@ -23,11 +29,12 @@ public class SecurityUtil {
 		
 	}
 	
-	public static String getSharedSecret(BigInteger fromLastNode, int randomNumber) {
-		BigInteger sharedSecret = GKENode.generator.pow(randomNumber).multiply(fromLastNode).mod(GKENode.prime);
+	public static String getSharedSecret(BigInteger fromLastNode, BigInteger randomNumber) {
+		BigInteger sharedSecret = GKENode.generator.pow(randomNumber.intValueExact()).multiply(fromLastNode).mod(GKENode.prime);
 		return sharedSecret.toString();
 	}
 
+	//getting the shared secret for the last element (multiplication already done)
 	public static String getSharedSecret(BigInteger selfSuperElement) {
 		BigInteger sharedSecret = selfSuperElement.mod(GKENode.prime);
 		return sharedSecret.toString();
