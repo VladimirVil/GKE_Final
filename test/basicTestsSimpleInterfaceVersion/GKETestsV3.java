@@ -6,7 +6,6 @@ import net.sharksystem.asap.apps.*;
 import net.sharksystem.asap.util.ASAPEngineThread;
 import net.sharksystem.cmdline.TCPChannel;
 import nodesV2.GKENode;
-import nodesV2.GKENode_Impl;
 import nodesV2.GKE_Listener;
 import nodesV2.SecurityUtil;
 import nodesV2.GKEMessage;
@@ -60,15 +59,7 @@ public class GKETestsV3 {
 
     @Test
     public void usageTest2() throws IOException, ASAPException, InterruptedException {
-//        final String TESTMESSAGEString1 = "Hallo  Bob Alice here WHatever Bye Bye ";
-//        final String TESTMESSAGEString2 = "Hallo  Claire Bob here Bye ";
-//        final String TESTMESSAGEString3 = "Hallo   Alice Claire here Bye Bye ";
-        Random rand = new Random();
-        //int aliceSecret = rand.nextInt((MAX_RANGE - MIN_RANGE) + 1) + MIN_RANGE;
-//        int bobSecret = rand.nextInt((MAX_RANGE - MIN_RANGE) + 1) + MIN_RANGE;
-//        int claireSecret = rand.nextInt((MAX_RANGE - MIN_RANGE) + 1) + MIN_RANGE;
-//        int ericSecret = rand.nextInt((MAX_RANGE - MIN_RANGE) + 1) + MIN_RANGE;
-        
+        Random rand = new Random();   
 
         BigInteger aliceSecret = BigInteger.valueOf(rand.nextInt((MAX_RANGE - MIN_RANGE) + 1) + MIN_RANGE);
         BigInteger bobSecret = BigInteger.valueOf(rand.nextInt((MAX_RANGE - MIN_RANGE) + 1) + MIN_RANGE);
@@ -77,19 +68,11 @@ public class GKETestsV3 {
         
         System.out.println("Personal secrets of ALice, Bob, Claire, Eric : " + aliceSecret +  "," + bobSecret + "," + claireSecret + "," + ericSecret);
 
-//        
-//        BigInteger aliceSecret = new BigInteger("7");
-//        BigInteger bobSecret = new BigInteger("9");
-//        BigInteger claireSecret = new BigInteger("11");
-//        BigInteger ericSecret = new BigInteger("17");
-        System.out.println("The numbers are :" + aliceSecret +  " " + bobSecret + " " + claireSecret + " " + ericSecret);
-
         //creating the first upflow message which is {A', 1} whereby A' is (generator^aliceSecret)mod(prime) and 1 
         //is a custom help element for further calculations 
         List tokens = SecurityUtil.getTokenList(Collections.EMPTY_LIST,aliceSecret);
         String aliceMessage=String.join(",", tokens); //
 		GKEMessage TESTMESSAGE1 = new GKEMessage_Impl("Alice", aliceMessage, new Date());
-        
         
         ASAPEngineFS.removeFolder(TESTS_ROOT_FOLDER);
         Collection<CharSequence> formats = new HashSet<>();
@@ -99,8 +82,6 @@ public class GKETestsV3 {
         recipients.add(BOB);
         
         GKENode asapJavaApplicationAlice =new GKENode(ALICE, ALICE_ROOT_FOLDER, formats);
-
-
 
         asapJavaApplicationAlice.sendASAPMessage(APP_FORMAT, "yourSchema://yourURI", recipients, TESTMESSAGE1.getSerializedMessage().toString().getBytes());
         asapJavaApplicationAlice.setASAPMessageReceivedListener(APP_FORMAT, new GKE_Listener());
@@ -183,15 +164,12 @@ public class GKETestsV3 {
 
         while(iterator.hasNext()) {
         	CharSequence msg = iterator.next();
-        	//System.out.println("<<>>received=" + msg);
         	GKEMessage gkemsg = new GKEMessage_Impl(msg);
         	//System.out.println("<<>>msg=" + gkemsg.getContentAsString());
         	tokensFromBob=Arrays.asList(gkemsg.getContentAsString().toString().split(","));
         }
-        
         List tokensFromClaire = SecurityUtil.getTokenList(tokensFromBob, claireSecret);
 
-        
         //Claire to Eric
         TCPChannel claire2eric = new TCPChannel(PORT7786, true, "c2e");
         TCPChannel eric2claire = new TCPChannel(PORT7786, false, "e2c");
@@ -218,9 +196,7 @@ public class GKETestsV3 {
 
         while(iteratorEric.hasNext()) {
         	CharSequence msg = iteratorEric.next();
-        	//System.out.println("<<>>received=" + msg);
         	GKEMessage gkemsg = new GKEMessage_Impl(msg);
-        	//System.out.println("<<>>msg=" + gkemsg.getContentAsString());
         	tokensFromClaire=Arrays.asList(gkemsg.getContentAsString().toString().split(","));
         }
         List<String> tokensFromEric = SecurityUtil.getTokenList(tokensFromClaire, ericSecret);
@@ -262,9 +238,7 @@ public class GKETestsV3 {
 
         while(iteratorAlice.hasNext()) {
         	CharSequence msg = iteratorAlice.next();
-        	//System.out.println("<<>>received=" + msg);
         	GKEMessage gkemsg = new GKEMessage_Impl(msg);
-        //	System.out.println("<<>>msg=" + gkemsg.getContentAsString());
         	tokensFromEric=Arrays.asList(gkemsg.getContentAsString().toString().split(","));
         }
         
@@ -297,9 +271,7 @@ public class GKETestsV3 {
 
         while(iteratorBobDownflow.hasNext()) {
         	CharSequence msg = iteratorBobDownflow.next();
-        	System.out.println("<<>>received=" + msg);
         	GKEMessage gkemsg = new GKEMessage_Impl(msg);
-        	System.out.println("<<>>msg=" + gkemsg.getContentAsString());
         	tokensFromEric=Arrays.asList(gkemsg.getContentAsString().toString().split(","));
         }
         
@@ -333,13 +305,10 @@ public class GKETestsV3 {
 
         while(iteratorClaireDownflow.hasNext()) {
         	CharSequence msg = iteratorClaireDownflow.next();
-        	//System.out.println("<<>>received=" + msg);
         	GKEMessage gkemsg = new GKEMessage_Impl(msg);
-        	//System.out.println("<<>>msg=" + gkemsg.getContentAsString());
         	tokensFromEric=Arrays.asList(gkemsg.getContentAsString().toString().split(","));
 
         }
-        
         String secretClaireFinal = SecurityUtil.getSharedSecret(new BigInteger(tokensFromEric.get(0)), claireSecret);
         System.out.println("Shared secret that claire has is " + secretClaireFinal);
         System.out.println("Testing shared secret is equal for all participants");
@@ -354,11 +323,8 @@ public class GKETestsV3 {
         Assert.assertFalse(secretBobFinal.equals(bobSecret.toString()));
         Assert.assertFalse(secretClaireFinal.equals(claireSecret.toString()));
         Assert.assertFalse(secretEricFinal.equals(ericSecret.toString()));
-
         System.out.println("Shared secrets of ALice, Bob, Claire, Eric : " + secretAliceFinal +  "," + secretBobFinal + "," + secretClaireFinal + "," + secretEricFinal);
         System.out.println("End");
-
-
 
     }
 }

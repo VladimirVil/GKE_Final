@@ -78,10 +78,6 @@ public class GKEMessage_Impl implements GKEMessage{
         }
     }
 
-//    @Override
-//    public CharSequence getSenderID() {
-//        return this.senderID;
-//    }
 
     @Override
     public byte[] getContent() throws ASAPException {
@@ -136,19 +132,19 @@ public class GKEMessage_Impl implements GKEMessage{
 		this.serializedMessage = serializedMessage;
 	}
 	
-	public BigInteger parseSpecificElement(String msg, int position) {
-		
-		BigInteger result;
-		String[] parts = msg.split("^^^^");
-		if ((parts.length -2) < position) {
-			result = BigInteger.valueOf(0);
-		}
-		else {
-			result = BigInteger.valueOf(Integer.parseInt(parts[position+2], 10));
-			System.out.println("result to retun : " + result);
-		}
-		
-		return result;
-	}
+//	public BigInteger parseSpecificElement(String msg, int position) {
+//		
+//		BigInteger result;
+//		String[] parts = msg.split("^^^^");
+//		if ((parts.length -2) < position) {
+//			result = BigInteger.valueOf(0);
+//		}
+//		else {
+//			result = BigInteger.valueOf(Integer.parseInt(parts[position+2], 10));
+//			System.out.println("result to retun : " + result);
+//		}
+//		
+//		return result;
+//	}
 }
 
