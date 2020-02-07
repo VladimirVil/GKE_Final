@@ -25,8 +25,6 @@ public class GKEMessage_Impl implements GKEMessage{
 
     public GKEMessage_Impl(CharSequence asapMessage) throws ASAPException {
         this.deserializeMessage(asapMessage); // throws exception if malformed
-
-        // not malformed - set rest of it
         this.serializedMessage = asapMessage;
     }
 
@@ -132,19 +130,5 @@ public class GKEMessage_Impl implements GKEMessage{
 		this.serializedMessage = serializedMessage;
 	}
 	
-//	public BigInteger parseSpecificElement(String msg, int position) {
-//		
-//		BigInteger result;
-//		String[] parts = msg.split("^^^^");
-//		if ((parts.length -2) < position) {
-//			result = BigInteger.valueOf(0);
-//		}
-//		else {
-//			result = BigInteger.valueOf(Integer.parseInt(parts[position+2], 10));
-//			System.out.println("result to retun : " + result);
-//		}
-//		
-//		return result;
-//	}
 }
 

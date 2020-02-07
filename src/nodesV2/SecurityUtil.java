@@ -39,5 +39,25 @@ public class SecurityUtil {
 		BigInteger sharedSecret = selfSuperElement.mod(GKENode.prime);
 		return sharedSecret.toString();
 	}
+	
+	//calculation of diffie hellman for 2 participants. Not a part of algorithm, part of testing negative tests 
+    public static String deffieHellmanForTwo (BigInteger aliceSec, BigInteger bobSec) {
+    	
+    	BigInteger aTag, bTag, middleResultA, middleResultB;
+    	aTag = GKENode.generator.modPow(aliceSec, GKENode.prime);
+    	bTag = GKENode.generator.modPow(bobSec, GKENode.prime);
+    	
+    	middleResultB = aTag.modPow(bobSec, GKENode.prime);
+    	middleResultA = bTag.modPow(aliceSec, GKENode.prime);
+    	System.out.println("MiddleResultA is :" + middleResultA + "middleResultB is : " + middleResultB);
+    	if (middleResultA.compareTo(middleResultB) == 0) {
+    		return middleResultA.toString();
+    	}
+    	else {
+    		System.out.print("Diffie hellman provided unacceptable result. Returning -1");
+    		return BigInteger.valueOf(Integer.parseInt("-1")).toString();
+    	}
+    	
+    }
 
 }
