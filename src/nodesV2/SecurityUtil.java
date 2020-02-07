@@ -49,7 +49,6 @@ public class SecurityUtil {
     	
     	middleResultB = aTag.modPow(bobSec, GKENode.prime);
     	middleResultA = bTag.modPow(aliceSec, GKENode.prime);
-    	System.out.println("MiddleResultA is :" + middleResultA + "middleResultB is : " + middleResultB);
     	if (middleResultA.compareTo(middleResultB) == 0) {
     		return middleResultA.toString();
     	}

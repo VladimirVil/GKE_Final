@@ -32,7 +32,9 @@ public class GKETestsV3 {
     public static final String CLAIRE = "Claire";
     public static final String ERIC = "Eric";
     public static final int MIN_RANGE = 3;
-    public static final int MAX_RANGE = 55;
+    public static final int MAX_RANGE = 150;
+    public static final int NUM_BITS = 555;
+
 
     
 
@@ -65,6 +67,12 @@ public class GKETestsV3 {
         BigInteger bobSecret = BigInteger.valueOf(rand.nextInt((MAX_RANGE - MIN_RANGE) + 1) + MIN_RANGE);
         BigInteger claireSecret = BigInteger.valueOf(rand.nextInt((MAX_RANGE - MIN_RANGE) + 1) + MIN_RANGE);
         BigInteger ericSecret = BigInteger.valueOf(rand.nextInt((MAX_RANGE - MIN_RANGE) + 1) + MIN_RANGE);
+        
+//	        BigInteger aliceSecret = new BigInteger(NUM_BITS, rand);
+//	        BigInteger bobSecret = new BigInteger(NUM_BITS + rand.nextInt((MAX_RANGE - MIN_RANGE) + 1) + MIN_RANGE, rand);
+//	        BigInteger claireSecret = new BigInteger(NUM_BITS + rand.nextInt((MAX_RANGE - MIN_RANGE) + 1) + MIN_RANGE, rand);
+//	        BigInteger ericSecret = new BigInteger(NUM_BITS + rand.nextInt((MAX_RANGE - MIN_RANGE) + 1) + MIN_RANGE, rand);
+
         
         System.out.println("Personal secrets of Alice, Bob, Claire, Eric : " + aliceSecret +  "," + bobSecret + "," + claireSecret + "," + ericSecret);
 
@@ -115,9 +123,9 @@ public class GKETestsV3 {
         //start communication
         asapJavaApplicationBob.handleConnection(bob2alice.getInputStream(), bob2alice.getOutputStream());
         // wait until communication probably ends
-        Thread.sleep(1200); System.out.flush(); System.err.flush();
+        Thread.sleep(1000); System.out.flush(); System.err.flush();
         // close connections: ASAPEngine does NOT close any connection by default
-        alice2bob.close(); bob2alice.close(); Thread.sleep(800);
+        alice2bob.close(); bob2alice.close(); Thread.sleep(500);
         Assert.assertTrue(listenerBob.hasReceivedMessage());
         ASAPMessages bobMessages = listenerBob.popASAPMessages();
         
@@ -151,8 +159,8 @@ public class GKETestsV3 {
 
         bobEngineThread.start();
         asapJavaApplicationClaire.handleConnection(claire2bob.getInputStream(), claire2bob.getOutputStream());
-        Thread.sleep(1800); System.out.flush(); System.err.flush();
-        bob2claire.close(); claire2bob.close(); Thread.sleep(800);
+        Thread.sleep(1000); System.out.flush(); System.err.flush();
+        bob2claire.close(); claire2bob.close(); Thread.sleep(500);
         
         Assert.assertTrue(listenerClaire.hasReceivedMessage());
         ASAPMessages claireMEssages = listenerClaire.popASAPMessages();
@@ -183,8 +191,8 @@ public class GKETestsV3 {
 
         claireEngineThread.start();
         asapJavaApplicationEric.handleConnection(eric2claire.getInputStream(), eric2claire.getOutputStream());
-        Thread.sleep(1200); System.out.flush(); System.err.flush();
-        claire2eric.close(); eric2claire.close(); Thread.sleep(700);
+        Thread.sleep(1000); System.out.flush(); System.err.flush();
+        claire2eric.close(); eric2claire.close(); Thread.sleep(500);
         Assert.assertTrue(listenerEric.hasReceivedMessage());
         
         ASAPMessages ericMessages = listenerEric.popASAPMessages();
@@ -199,8 +207,9 @@ public class GKETestsV3 {
         String secretEricFinal = SecurityUtil.getSharedSecret(new BigInteger(tokensFromEric.get(0)));
         System.out.println("Shared secret that eric has is " + secretEricFinal);
 
-
         List<String> tokensFromEricOriginalCopy = tokensFromEric;
+        System.out.println("**tokens from eric size is" + tokensFromEric.size() + "copy size is" + tokensFromEricOriginalCopy.size());
+
     //    String secretE = SecurityUtil.getSharedSecret(new BigInteger(tokensFromEric.get(0)));
 //        String secretA = SecurityUtil.getSharedSecret(new BigInteger(tokensFromEric.get(1)), aliceSecret);
 //        String secretB = SecurityUtil.getSharedSecret(new BigInteger(tokensFromEric.get(2)), bobSecret);
@@ -225,8 +234,8 @@ public class GKETestsV3 {
 
         ericEngineThreadDownflowAlice.start();
         asapJavaApplicationAlice.handleConnection(alice2eric.getInputStream(), alice2eric.getOutputStream());
-        Thread.sleep(1200); System.out.flush(); System.err.flush();
-        eric2alice.close(); alice2eric.close(); Thread.sleep(700);
+        Thread.sleep(1000); System.out.flush(); System.err.flush();
+        eric2alice.close(); alice2eric.close(); Thread.sleep(500);
         Assert.assertTrue(listenerAlice.hasReceivedMessage());
         
         ASAPMessages aliceMessagesDownflow = listenerAlice.popASAPMessages();
@@ -258,7 +267,7 @@ public class GKETestsV3 {
 
         ericEngineThreadDownflowBob.start();
         asapJavaApplicationBob.handleConnection(bob2eric.getInputStream(), bob2eric.getOutputStream());
-        Thread.sleep(1200); System.out.flush(); System.err.flush();
+        Thread.sleep(1000); System.out.flush(); System.err.flush();
         eric2bob.close(); bob2eric.close(); Thread.sleep(700);
         Assert.assertTrue(listenerBob.hasReceivedMessage());
         
@@ -292,7 +301,7 @@ public class GKETestsV3 {
 
         ericEngineThreadDownflowClaire.start();
         asapJavaApplicationClaire.handleConnection(claire2ericDownflow.getInputStream(), claire2ericDownflow.getOutputStream());
-        Thread.sleep(1200); System.out.flush(); System.err.flush();
+        Thread.sleep(1000); System.out.flush(); System.err.flush();
         eric2claireDownflow.close(); claire2ericDownflow.close(); Thread.sleep(700);
         Assert.assertTrue(listenerClaire.hasReceivedMessage());
         
@@ -306,7 +315,11 @@ public class GKETestsV3 {
 
         }
         String secretClaireFinal = SecurityUtil.getSharedSecret(new BigInteger(tokensFromEric.get(0)), claireSecret);
+        System.out.println("Shared secret that alice has is  " + secretAliceFinal);
+        System.out.println("Shared secret that bob has is    " + secretBobFinal);
         System.out.println("Shared secret that claire has is " + secretClaireFinal);
+        System.out.println("Shared secret that eric has is   " + secretEricFinal);
+
         System.out.println("Testing shared secret is equal for all participants");
         Thread.sleep(250);
         Assert.assertTrue(secretAliceFinal.equals(secretBobFinal));
@@ -314,6 +327,7 @@ public class GKETestsV3 {
         Assert.assertTrue(secretClaireFinal.equals(secretEricFinal));
         Assert.assertTrue(secretEricFinal.equals(secretAliceFinal));
         System.out.println("Done");
+        
         System.out.println("Following tests are advanced negative tests. They do not test for incorrect input,"
         		+ "but rather for incorrect output, whereby the shared secret is equal, but is not built correctly");
         System.out.println("1. Testing shared secret is not equal to personal secret of any of the participants");
@@ -322,6 +336,7 @@ public class GKETestsV3 {
         Assert.assertFalse(secretClaireFinal.equals(claireSecret.toString()));
         Assert.assertFalse(secretEricFinal.equals(ericSecret.toString()));
         System.out.println("Done");
+        
         System.out.println("2. Testing shared secret is not equal to DH of any 2 participants");
         Thread.sleep(500);
         Assert.assertFalse(secretAliceFinal.equals(SecurityUtil.deffieHellmanForTwo(aliceSecret, bobSecret)));
@@ -331,6 +346,7 @@ public class GKETestsV3 {
         Assert.assertFalse(secretAliceFinal.equals(SecurityUtil.deffieHellmanForTwo(bobSecret, ericSecret)));
         Assert.assertFalse(secretAliceFinal.equals(SecurityUtil.deffieHellmanForTwo(claireSecret, ericSecret)));
         System.out.println("Done");
+        
         System.out.println("Shared secrets of Alice, Bob, Claire, Eric : " + secretAliceFinal +  "," + secretBobFinal + "," + secretClaireFinal + "," + secretEricFinal);
         System.out.println("End");
 
